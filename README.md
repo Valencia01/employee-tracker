@@ -17,7 +17,7 @@ This uses the terminal to keep track of employees, jobs, and departments. The us
 
 ### Executing program
 
-[Video Link]()
+[Video Link](https://drive.google.com/file/d/1sowNcr-eqnhthqyaC9zNP_dPTtAF6gDN/view)
 
 ## Author(s)
 

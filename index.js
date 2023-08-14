@@ -2,10 +2,12 @@ const mysql = require ("mysql2");
 const inquirer = require ("inquirer");
 require('dotenv').config();
 
+//initalizing global arrays
 let rolesArr = [];
 let employeesArr = ['None'];
 let departmentsArr = [];
 
+//database connection
 const db = mysql.createConnection(
     {
       host: 'localhost',
@@ -13,8 +15,11 @@ const db = mysql.createConnection(
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME
     },
-    console.log(`Connected to the employeeTracker_db database.`)
+    
 );
+
+
+//the inital questions to traverse the terminal
 
 function init () {
     inquirer.prompt([
@@ -39,30 +44,33 @@ function init () {
         if(data.action === "View all Employees"){
             viewAllEmployees();
         }
-        if(data.action === "Add Employee"){
+        else if(data.action === "Add Employee"){
             addEmployee();
         }
-        if(data.action === "Update Employee Role"){
+        else if(data.action === "Update Employee Role"){
             updateEmployee();
         }
-        if(data.action === "View all Roles"){
+        else if(data.action === "View all Roles"){
             viewAllRoles();
         }
-        if(data.action === "Add Role"){
+        else if(data.action === "Add Role"){
             addRole();
         }
-        if(data.action === "View all Departments"){
+        else if(data.action === "View all Departments"){
             viewAllDepartments();
         }
-        if(data.action === "Add Department"){
+        else if(data.action === "Add Department"){
             addDepartment();
         }
-        if(data.action === "Quit"){
+        else if(data.action === "Quit"){
             process.exit();
         }
 
     })
 }
+
+
+//this displays the whole table depending on the one selected
 
 async function viewAllDepartments () {
     const departments = await db.promise().query(`SELECT * FROM department`);
@@ -91,6 +99,9 @@ async function viewAllRoles () {
     console.table(roles[0]);
     init();
 }
+
+
+//all the add functions that show questions depending on the information needed
 
 function addEmployee () {
 
@@ -200,7 +211,7 @@ function addRole() {
 
         ])
         .then((data) => {
-            var sql = `INSERT INTO role (department_id, role_title, role_salary) VALUES (1, "${data.rname}", ${data.rsalary}.00)`;
+            var sql = `INSERT INTO role (department_id, role_title, role_salary) VALUES (${data.department}, "${data.rname}", ${data.rsalary}.00)`;
                 db.query(sql, function (err, result) {
                     if (err) {
                         throw err;
@@ -238,6 +249,10 @@ function addDepartment() {
 
     })
 }
+
+
+
+//this will get the employee that is needed to be updated and change their inital role 
 
 function updateEmployee() {
     const roleList = `SELECT * FROM role`;
@@ -278,16 +293,15 @@ function updateEmployee() {
             ])
             .then((data) => {
                 var sql = `UPDATE employee SET role_id = ${data.erole} WHERE id = ${data.employee}`;
-                    db.query(sql, function (err, result) {
-                        if (err) {
-                            throw err;
-                        }
-                        else {
-                            console.log(`Updated employee's role`);
-                            init();
-                        }
-                    });
-
+                db.query(sql, function (err, result) {
+                    if (err) {
+                        throw err;
+                    }
+                    else {
+                        console.log(`Updated employee's role`);
+                        init();
+                    }
+                });
             })
         });
     });
