@@ -12,12 +12,9 @@ const db = mysql.createConnection(
       user: process.env.DB_USER,
       password: process.env.DB_PASSWORD,
       database: process.env.DB_NAME
-      
     },
     console.log(`Connected to the employeeTracker_db database.`)
 );
-
-
 
 function init () {
     inquirer.prompt([
@@ -44,6 +41,9 @@ function init () {
         }
         if(data.action === "Add Employee"){
             addEmployee();
+        }
+        if(data.action === "Update Employee Role"){
+            updateEmployee();
         }
         if(data.action === "View all Roles"){
             viewAllRoles();
@@ -141,8 +141,13 @@ function addEmployee () {
                 }
             ])
             .then((data) => {
-                console.log(data.role)
-                var sql = `INSERT INTO employee (role_id, first_name, last_name, manager_id) VALUES (${data.role}, "${data.fname}", "${data.lname}", ${data.manager})`;
+                if (data.manager === "None") {
+                    var sql = `INSERT INTO employee (role_id, first_name, last_name, manager_id) VALUES (${data.role}, "${data.fname}", "${data.lname}", NULL)`;
+                }
+                else {
+                    var sql = `INSERT INTO employee (role_id, first_name, last_name, manager_id) VALUES (${data.role}, "${data.fname}", "${data.lname}", ${data.manager})`;
+                }
+                
                 db.query(sql, function (err, result) {
                     if (err) {
                         throw err;
@@ -232,6 +237,60 @@ function addDepartment() {
             });
 
     })
+}
+
+function updateEmployee() {
+    const roleList = `SELECT * FROM role`;
+    const employeeList = `SELECT * FROM employee`;
+    db.query(roleList, function (err, results) {
+        db.query(employeeList, function (err, results2) {
+          
+            for(let i = 0; i < results.length; i++){
+                var titleText = results[i].role_title;
+                var titleId = results[i].id
+                rolesArr.push({
+                    name: titleText,
+                    value: titleId
+                })
+            } 
+            for(let j = 0; j < results2.length; j++){
+                var empText = results2[j].first_name + " " + results2[j].last_name;
+                var empId = results2[j].id;
+                employeesArr.push({
+                    name: empText,
+                    value: empId
+                });
+            } 
+            inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'employee',
+                    message: "Which employee's role do you want to update?", 
+                    choices: employeesArr,
+                },
+                {
+                    type: 'list',
+                    name: 'erole',
+                    message: "Which role do you want to assign the selected employee?", 
+                    choices: rolesArr,
+                },
+
+            ])
+            .then((data) => {
+                var sql = `UPDATE employee SET role_id = ${data.erole} WHERE id = ${data.employee}`;
+                    db.query(sql, function (err, result) {
+                        if (err) {
+                            throw err;
+                        }
+                        else {
+                            console.log(`Updated employee's role`);
+                            init();
+                        }
+                    });
+
+            })
+        });
+    });
 }
 
 
